@@ -54,21 +54,37 @@ class Persons extends CI_Controller {
 
     public function post() {
         $this->load->database();
-        parse_str(file_get_contents('php://input'), $data);
-        current($data);
-        $data = json_decode(key($data));
+        $data = file_get_contents('php://input');
+        $data = json_decode($data);
+//var_dump($data);
+//die();
+        $name = trim($data->name);
+        $email = trim($data->email);
+        $active = trim($data->active);
 
         $this->db->insert('person', array(
-            'name' => $data->name,
-            'email' => $data->email,
-            'active' => $data->active
+            'name' => $name,
+            'email' => $email,
+            'active' => $active
         ));
 
-        $this->load->view("view_json_item", array(
-            "data" => array(
-                "id" => $this->db->insert_id()
-            )
-        ));
+        if($this->db->affected_rows() === 1) {
+            $this->load->view("view_json_item", array(
+                "data" => array(
+                    "id" => $this->db->insert_id(),
+                    'name' => $name,
+                    'email' => $email,
+                    'active' => $active,
+                    'avatar' => $this->getAvatar($email)
+                )
+            ));
+        } else {
+            $this->load->view("view_json_item", array(
+                "data" => array(
+                    "success" => false
+                )
+            ));
+        }
     }
 
     public function delete($id) {
@@ -90,10 +106,13 @@ class Persons extends CI_Controller {
         $this->db->where(array(
                 "id" => $id
             ));
+        var_dump($data->active);
+        echo $id;
         $this->db->update("person", array(
             'name' => $data->name,
             'email' => $data->email,
             'active' => $data->active
         ));
+        echo $this->db->last_query();
     }
 }

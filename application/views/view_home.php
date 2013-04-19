@@ -10,6 +10,5 @@
     <script type="text/javascript" src="<?= site_url("js/main.js") ?>"></script>
 </head>
 <body>
-	Hello!
 </body>
 </html>

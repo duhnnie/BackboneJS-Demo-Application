@@ -1,16 +1,43 @@
 var init = function() {
-/*
-    document.body.appendChild(new ContactForm().render().el);
-    $.get('persons', function(a, e, i){
-        a.forEach(function(item, index, allTheItems){
-            models.push(new Contact(item));
-            document.body.appendChild(new ContactView({model: models[index]}).render().el);
-        });
-    });*/
-    contactBook = new ContactBook(document.body, {
-        url: '/persons'
+    var contact = new Contact();
+
+    contact.on('change', function() {
+        console.log(arguments);
     });
-},
-contactBook;
+
+    contact.set({
+        name: "Pepiro",
+        email: "pesaspiro.gomez@gmail.com",
+        active: 1
+    });
+
+    contact.set({
+        name: "Pedfgdo",
+        email: "pesadfgdfro.gomez@gmail.com",
+        active: 1
+    });
+
+    /*contact.save({}, {
+        success: function(model) {
+            console.log(model.get("id"));
+            model.destroy({
+                success: function (model) {
+                    console.log(model.toJSON());
+                }        
+            });
+        }
+    });*/
+
+    /*var contactView = new ContactView({model: contact});
+
+    contact.set({name: "My Real Name"});
+    contactView.render();
+    document.body.appendChild(contactView.el);*/
+    /*contact.fetch({
+        success: function(model, response, options) {
+            console.log(contact.toJSON());
+        }
+    });*/
+};
 
 $(init);

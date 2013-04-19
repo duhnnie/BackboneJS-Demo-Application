@@ -85,21 +85,15 @@ class Persons extends CI_Controller {
     }
 
     public function put($id, $data) {
+        $data = json_decode($data);
         $this->load->database();
         $this->db->where(array(
                 "id" => $id
             ));
-        var_dump($data);
-        die();
-        current($data);
-        var_dump(key($data));
-        $data = json_decode(key($data));
-        var_dump($data);
-        die();
-        /*$this->db->update("person", array(
+        $this->db->update("person", array(
             'name' => $data->name,
             'email' => $data->email,
             'active' => $data->active
-        )); */
+        ));
     }
 }

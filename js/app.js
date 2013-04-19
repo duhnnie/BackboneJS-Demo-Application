@@ -6,7 +6,7 @@ var Contact = Backbone.Model.extend({
     toggleStatus: function() {
         var s = this.get("active");
         this.set({
-            active: !s
+            active: !s 
         });
 
         this.save();
@@ -20,7 +20,7 @@ var ContactView = Backbone.View.extend({
         this.listenTo(this.model, 'destroy', this.clean);
         this.listenTo(this.model, 'change :active', this.changeActive);
     },
-    template: _.template('<div id="<%= id %>" class="contact"><input type="checkbox" value="1" name="active" <% if(active) print("checked"); %> /><%= name %><img src="<%= avatar %>"/><span><%= email %></span><div class="delete">x</div></div>'),
+    template: _.template('<div id="<%= id %>" class="contact"><input type="checkbox" value="1" name="active" <% if(parseInt(active, 10)) print("checked"); %> /><%= name %><img src="<%= avatar %>"/><span><%= email %></span><div class="delete">x</div></div>'),
     events: {
         "click": "click",
         "click .delete": "delete",
@@ -31,7 +31,7 @@ var ContactView = Backbone.View.extend({
         this.model.toggleStatus();
     },
     changeActive: function() {
-        if(this.model.get("active")) {
+        if(parseInt(this.model.get("active"))) {
             this.$el.fadeIn().find('.delete').show();
         } else {
             this.$el.fadeTo('fast', 0.3).find('.delete').hide();
@@ -54,6 +54,9 @@ var ContactView = Backbone.View.extend({
     },
     render: function() {
         this.$el.html(this.template(this.model.attributes));
+        if(!parseInt(this.model.get("active"), 10)) {
+            this.model.trigger('change input[type=checkbox]');
+        }
         return this;
     }
 })

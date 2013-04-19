@@ -12,12 +12,17 @@ class MY_Input extends CI_Input {
 
             $this->delete = $this->_clean_input_data($this->delete);
         } elseif ($this->server('REQUEST_METHOD') == 'PUT') {
-            parse_str(file_get_contents('php://input'), $this->put);
+            //parse_str(file_get_contents('php://input'), $this->put);
             //var_dump(parse_str(file_get_contents("php://input")));
-            echo "--";
+            //$this->input = json_decode(file_get_contents('php://input'), true);
+            $this->put = file_get_contents('php://input');
+            //var_dump($this->put);
+            //die();
+            //die(file_get_contents('php://input'));
+            /*echo "--";
             var_dump($this->put);
             $this->put = $this->_clean_input_data($this->put);
-            var_dump($this->put);
+            var_dump($this->put);*/
         }
     }
 

@@ -7,7 +7,9 @@ var init = function() {
             document.body.appendChild(new ContactView({model: models[index]}).render().el);
         });
     });*/
-    contactBook = new ContactBook(document.body);
+    contactBook = new ContactBook(document.body, {
+        url: '/persons'
+    });
 },
 contactBook;
 

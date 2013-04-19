@@ -8,8 +8,14 @@ var ContactBook = (function() {
 
     Contact = Backbone.Model.extend({
         urlRoot: "/persons",
+        initialize: function() {
+            this.on('sync', this.onSync);
+        },
         defaults: {
             active: true
+        },
+        onSync: function(a, b, c) {
+            console.log(this.toJSON());
         },
         toggleStatus: function() {
             var s = this.get("active");
@@ -24,13 +30,13 @@ var ContactBook = (function() {
     });
 
     ContactView = Backbone.View.extend({
-        tagName: "li",
+        tagName: "div",
+        className: "contact",
         initialize: function(options) {
             this.listenTo(this.model, 'destroy', this.destroy);
             this.listenTo(this.model, 'change', this.render);
-            //this.listenTo(this.model, 'change :active', this.changeActive);
         },
-        template: _.template('<div id="<%= id %>" class="contact <% if(active == 0) print("inactive") %>"><input type="checkbox" value="1" name="active" <% if(parseInt(active, 10)) print("checked"); %> /><%= name %><img src="<%= avatar %>"/><span><%= email %></span><div class="delete">x</div></div>'),
+        template: _.template('<input type="checkbox" value="1" name="active" <% if(parseInt(active, 10)) print("checked"); %> /><%= name %><img src="<%= avatar %>"/><span><%= email %></span><div class="delete">x</div>'),
         events: {
             "click .delete": "delete",
             "change input[type=checkbox]": 'toggleActive'
@@ -43,11 +49,15 @@ var ContactBook = (function() {
             this.model.destroy();
         },
         destroy: function() {
-            this.$el.fadeOut(function() {
+            this.$el.animate({top: '100px', opacity: 0}, function(){
                 $(this).remove();
             });
         },
         render: function() {
+            this.$el.attr("id", this.model.get("id"));
+            if(!parseInt(this.model.get("active"), 10)) {
+                this.$el.addClass("inactive");
+            }
             this.$el.html(this.template(this.model.attributes));
             return this;
         }
@@ -72,42 +82,59 @@ var ContactBook = (function() {
         },
         save: function(e) {
             e.preventDefault();
-            var name = this.$('[name=name]').val(),
-                email = this.$('[name=email]').val();
-                console.log(name);
-            (new Contact({
-                name: name,
-                email: email
-            })).save({}, {
-                success: function(model, response, options) {
-                    document.body.appendChild(new ContactView({model: model}).render().el);
-                }, error: function(){
-                    alert("error");
-                }
-            });
+            var that = this, name = this.$('[name=name]').val(),
+                email = this.$('[name=email]').val()
+                newContact = new Contact({
+                    name: name,
+                    email: email
+                });
+
+            newContact.save({},{success: function(model, response, options) {
+                that.collection.add(model);
+            }});
         }
     });
 
-    ContactCollection = Bacbone.Collection.extend({});
+    ContactCollection = Backbone.Collection.extend();
 
     ContactCollectionView = Backbone.View.extend({
+        tagName: 'ul',
+        initialize: function() {
+            this.collection.on('add', this.add, this);
+        },
         render: function() {
+            this.collection.forEach(this.add, this);
+            return this;
+        },
+        add: function(contact) {
+            var contact_view = new ContactView({model: contact})
+                li = document.createElement("li")
+                el = contact_view.render().el;
 
+            li.appendChild(el);
+            el.style.top = "100px";
+            el.style.opacity = 0;
+            this.el.appendChild(li);
+            $(el).animate({
+                opacity: 1,
+                top: 0
+            });
         }
     });
 
     //the Class
 
-    theContactBook = function(element, options) {
+    TheContactBook = function(element, options) {
         this.html = null;
         this.collection = null;
-        this.collectionView = null;
+        this.collection_view = null;
         this.form = null;
 
-        theContactBook.prototype.init.call(this, element);
+        TheContactBook.prototype.init.call(this, element, options || {});
     };
 
-    theContactBook.prototype.init = function (element, options) {
+    TheContactBook.prototype.init = function (element, options) {
+        var collection;
         if(element) {
             this.html = $(element).get(0);
         } else {
@@ -115,13 +142,22 @@ var ContactBook = (function() {
         }
         $(this.html).html("");
 
-        this.collection = new ContactCollection({model: Contact});
-        this.collectionView = (function(collection) {
-            return new ContactCollectionView({collection: collection});
-        })(this.collection);
+        if(!options.url) {
+            throw new Error('A object "url" property must be specified');
+        }
+
+        collection = new ContactCollection([], {model: Contact, url: options.url});
+        this.collection = collection;
+        this.collection_view =  new ContactCollectionView({collection: collection});
+        this.form = new ContactForm({collection: collection});
+
+        this.html.appendChild(this.form.render().el);
+        this.html.appendChild(this.collection_view.el);
+
+        this.collection.fetch();
 
         return this;
     };
 
-    return theContactBook;
+    return TheContactBook;
 })();
